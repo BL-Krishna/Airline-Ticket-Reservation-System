@@ -6,6 +6,7 @@ import airline.model.Booking;
 import airline.model.Flight;
 import airline.model.Passenger;
 import airline.repository.BookingRepository;
+import airline.singleton.BookingManager;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -16,6 +17,10 @@ import java.util.UUID;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
+
+    public BookingService() {
+        this.bookingRepository = BookingManager.getInstance().getBookingRepository();
+    }
 
     public BookingService(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;

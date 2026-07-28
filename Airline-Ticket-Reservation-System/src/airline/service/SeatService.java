@@ -10,9 +10,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import airline.singleton.FlightManager;
+
 public class SeatService {
 
     private final SeatRepository repository;
+
+    public SeatService() {
+        this.repository = FlightManager.getInstance().getSeatRepository();
+        generateSeats();
+    }
 
     public SeatService(SeatRepository repository) {
 

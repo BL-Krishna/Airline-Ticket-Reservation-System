@@ -1,24 +1,17 @@
-package airline.notification;
-
+package airline.service;
 import airline.model.Booking;
 import airline.model.Payment;
 import airline.model.Refund;
-import airline.repository.PaymentRepository;
-
+import airline.notification.NotificationObserver;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NotificationService {
 
-    private final PaymentRepository paymentRepository;
-    private final NotificationService notificationService;
+    private final List<NotificationObserver> observers = new ArrayList<>();
 
-    public PaymentService(PaymentRepository paymentRepository,
-                          NotificationService notificationService) {
-
-        this.paymentRepository = paymentRepository;
-        this.notificationService = notificationService;
+    public NotificationService() {
 
     }
 

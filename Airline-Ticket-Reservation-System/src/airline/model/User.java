@@ -48,6 +48,10 @@ public class User {
         return fullName;
     }
 
+    public String getName() {
+        return fullName;
+    }
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }

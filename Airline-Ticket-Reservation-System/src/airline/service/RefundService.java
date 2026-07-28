@@ -1,32 +1,45 @@
 package airline.service;
-import airline.service.RefundService;
 import airline.model.Booking;
-import airline.model.BookingStatus;
+import airline.enums.BookingStatus;
 import airline.model.Payment;
 import airline.model.PaymentStatus;
 import airline.model.Refund;
 import airline.model.RefundStatus;
-import airline.notification.NotificationService;
 import airline.repository.RefundRepository;
+import airline.repository.BookingRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import airline.singleton.PaymentManager;
+import airline.singleton.FlightManager;
+import airline.singleton.BookingManager;
+
 public class RefundService {
 
     private final RefundRepository refundRepository;
     private final SeatService seatService;
     private final NotificationService notificationService;
+    private final BookingRepository bookingRepository;
+
+    public RefundService() {
+        this.refundRepository = PaymentManager.getInstance().getRefundRepository();
+        this.seatService = new SeatService(FlightManager.getInstance().getSeatRepository());
+        this.notificationService = new NotificationService();
+        this.bookingRepository = BookingManager.getInstance().getBookingRepository();
+    }
 
     public RefundService(RefundRepository refundRepository,
                          SeatService seatService,
-                         NotificationService notificationService) {
+                         NotificationService notificationService,
+                         BookingRepository bookingRepository) {
 
         this.refundRepository = refundRepository;
         this.seatService = seatService;
         this.notificationService = notificationService;
+        this.bookingRepository = bookingRepository;
     }
 
     /**
@@ -62,7 +75,9 @@ public class RefundService {
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
-        seatService.releaseSeat(booking.getSeat());
+        if (booking.getSeat() != null) {
+            seatService.releaseSeat(booking.getSeat().getSeatNumber());
+        }
 
         notificationService.notifyRefund(refund);
         return refund;
@@ -248,7 +263,7 @@ public class RefundService {
             throw new RuntimeException("Booking is already cancelled.");
         }
 
-        Refund refund = refundService.processRefund(
+        Refund refund = processRefund(
                 booking,
                 payment
         );
