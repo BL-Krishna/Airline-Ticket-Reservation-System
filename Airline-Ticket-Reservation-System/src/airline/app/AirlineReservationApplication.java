@@ -145,5 +145,73 @@ public class AirlineReservationApplication {
         flightService.displayFlights();
 
     }
+    flightService.displayFlights();
+
+System.out.println("\n===============================");
+System.out.println("UC5 FLIGHT SEARCH");
+System.out.println("===============================");
+
+System.out.println("\nSearch By Source");
+
+searchService.searchBySource("Hyderabad")
+        .forEach(System.out::println);
+
+System.out.println("\nSearch By Destination");
+
+searchService.searchByDestination("Mumbai")
+        .forEach(System.out::println);
+
+System.out.println("\nSearch By Route");
+
+searchService.searchByRoute(
+        "Hyderabad",
+        "Delhi")
+        .forEach(System.out::println);
+
+System.out.println("\nSearch By Airline");
+
+searchService.searchByAirline("Air India")
+        .forEach(System.out::println);
+
+System.out.println("\nSearch By Date");
+
+searchService.searchByDate(
+
+        LocalDate.of(2026,8,10)
+
+        ).forEach(System.out::println);
+
+System.out.println("\nCheapest Flight");
+
+System.out.println(
+
+        searchService.getCheapestFlight()
+
+        );
+
+System.out.println("\nFlights Sorted By Fare");
+
+searchService.sortByFare()
+
+        .forEach(System.out::println);
+
+System.out.println("\nFlights Sorted By Departure");
+
+searchService.sortByDepartureTime()
+
+        .forEach(System.out::println);
+
+System.out.println("\nFlights Grouped By Airline");
+
+searchService.groupFlightsByAirline()
+
+        .forEach((airline,list)->{
+
+        System.out.println("\n"+airline);
+
+        list.forEach(System.out::println);
+
+    });
+
 
 }

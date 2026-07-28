@@ -2,9 +2,9 @@ package airline.repository;
 
 import airline.model.Flight;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class FlightRepository {
 
@@ -47,6 +47,102 @@ public class FlightRepository {
     public int count() {
 
         return flights.size();
+
+    }
+
+    // ===========================
+    // UC5 SEARCH METHODS
+    // ===========================
+
+    public List<Flight> findBySource(String source){
+
+        return flights.values()
+
+                .stream()
+
+                .filter(f ->
+                        f.getRoute()
+                                .getSource()
+                                .equalsIgnoreCase(source))
+
+                .collect(Collectors.toList());
+
+    }
+
+    public List<Flight> findByDestination(String destination){
+
+        return flights.values()
+
+                .stream()
+
+                .filter(f ->
+                        f.getRoute()
+                                .getDestination()
+                                .equalsIgnoreCase(destination))
+
+                .collect(Collectors.toList());
+
+    }
+
+    public List<Flight> findByRoute(String source,
+                                    String destination){
+
+        return flights.values()
+
+                .stream()
+
+                .filter(f->
+
+                        f.getRoute()
+                                .getSource()
+                                .equalsIgnoreCase(source)
+
+                                &&
+
+                                f.getRoute()
+                                        .getDestination()
+                                        .equalsIgnoreCase(destination)
+
+                )
+
+                .collect(Collectors.toList());
+
+    }
+
+    public List<Flight> findByAirline(String airline){
+
+        return flights.values()
+
+                .stream()
+
+                .filter(f->
+
+                        f.getAirlineName()
+                                .equalsIgnoreCase(airline)
+
+                )
+
+                .collect(Collectors.toList());
+
+    }
+
+    public List<Flight> findByDate(LocalDate date){
+
+        return flights.values()
+
+                .stream()
+
+                .filter(f->
+
+                        f.getDepartureTime()
+
+                                .toLocalDate()
+
+                                .equals(date)
+
+                )
+
+                .collect(Collectors.toList());
 
     }
 
