@@ -8,6 +8,7 @@ import airline.model.Route;
 import airline.model.Seat;
 import airline.repository.FlightRepository;
 import airline.repository.SeatRepository;
+import airline.repository.AirportRepository;
 import airline.factory.FlightFactory;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -18,11 +19,13 @@ public class FlightManager {
     private static volatile FlightManager instance;
     private final FlightRepository flightRepository;
     private final SeatRepository seatRepository;
+    private final AirportRepository airportRepository;
     private final Map<String, Flight> flightCache = new ConcurrentHashMap<>();
 
     private FlightManager() {
         this.flightRepository = new FlightRepository();
         this.seatRepository = new SeatRepository();
+        this.airportRepository = new AirportRepository();
     }
 
     public static FlightManager getInstance() {
@@ -42,6 +45,10 @@ public class FlightManager {
 
     public SeatRepository getSeatRepository() {
         return seatRepository;
+    }
+
+    public AirportRepository getAirportRepository() {
+        return airportRepository;
     }
 
     public synchronized Flight addFlight(

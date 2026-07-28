@@ -14,6 +14,8 @@ import airline.service.FlightService;
 import airline.singleton.BookingManager;
 import airline.singleton.FlightManager;
 import airline.singleton.PaymentManager;
+import airline.model.Airport;
+import airline.service.AirportService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -63,6 +65,38 @@ public class AirlineReservationApplication {
                 new BookingService(bookingRepository);
 
         // ===========================
+        // UC12 - AIRPORT SETUP & SERVICE TEST
+        // ===========================
+        System.out.println("\n========== UC12 - AIRPORT MANAGEMENT DEMO ==========");
+        AirportService airportService = new AirportService();
+
+        // Add airports
+        Airport hyd = airportService.addAirport("HYD", "Rajiv Gandhi International Airport", "Hyderabad", "India", "GMT+5:30", "+91 40 6654 6390");
+        Airport del = airportService.addAirport("DEL", "Indira Gandhi International Airport", "Delhi", "India", "GMT+5:30", "+91 11 4719 7000");
+        Airport bom = airportService.addAirport("BOM", "Chhatrapati Shivaji Maharaj International Airport", "Mumbai", "India", "GMT+5:30", "+91 22 6685 1010");
+        Airport maa = airportService.addAirport("MAA", "Chennai International Airport", "Chennai", "India", "GMT+5:30", "+91 44 2256 0551");
+        Airport blr = airportService.addAirport("BLR", "Kempegowda International Airport", "Bangalore", "India", "GMT+5:30", "+91 80 6678 2425");
+        Airport ccu = airportService.addAirport("CCU", "Netaji Subhash Chandra Bose International Airport", "Kolkata", "India", "GMT+5:30", "+91 33 2511 8036");
+
+        // Add facilities & terminals
+        airportService.updateFacilities("HYD", java.util.List.of("WiFi", "Lounge", "Duty-Free", "Wheelchair-Accessible"));
+        airportService.updateTerminals("HYD", java.util.List.of("T1", "T2", "Cargo"));
+
+        // Display airports
+        airportService.displayAirports();
+
+        // Search & Retrieve
+        System.out.println("Search by IATA code 'HYD':");
+        System.out.println(airportService.searchByCode("HYD"));
+
+        System.out.println("\nSearch by city 'Delhi':");
+        airportService.searchByCity("Delhi").forEach(System.out::println);
+
+        System.out.println("\nAuto-suggest for query 'international':");
+        airportService.getAutoSuggestions("international").stream().limit(2).forEach(System.out::println);
+        System.out.println("=====================================================");
+
+        // ===========================
         // AIRCRAFTS
         // ===========================
 
@@ -92,20 +126,20 @@ public class AirlineReservationApplication {
 
         Route route1 =
                 new Route(
-                        "Hyderabad",
-                        "Delhi"
+                        hyd,
+                        del
                 );
 
         Route route2 =
                 new Route(
-                        "Chennai",
-                        "Mumbai"
+                        maa,
+                        bom
                 );
 
         Route route3 =
                 new Route(
-                        "Bangalore",
-                        "Kolkata"
+                        blr,
+                        ccu
                 );
 
         // ===========================
