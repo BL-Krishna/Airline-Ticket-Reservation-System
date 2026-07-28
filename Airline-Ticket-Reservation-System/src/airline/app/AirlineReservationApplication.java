@@ -1,87 +1,148 @@
 package airline.app;
 
-import airline.exception.DuplicateUserException;
-import airline.exception.InvalidUserException;
-import airline.model.User;
-import airline.service.UserService;
+import airline.enums.FlightStatus;
+import airline.model.Aircraft;
+import airline.model.Route;
+import airline.repository.FlightRepository;
+import airline.service.FlightService;
+
+import java.time.LocalDateTime;
 
 public class AirlineReservationApplication {
 
     public static void main(String[] args) {
 
-        UserService service =
+        FlightRepository flightRepository =
+                new FlightRepository();
 
-                new UserService();
+        FlightService flightService =
+                new FlightService(flightRepository);
 
-        try {
+        Aircraft aircraft1 =
+                new Aircraft(
+                        "A101",
+                        "Airbus A320",
+                        "Narrow Body",
+                        180,
+                        24,
+                        12
+                );
 
-            User passenger1 =
+        Aircraft aircraft2 =
+                new Aircraft(
+                        "A102",
+                        "Boeing 737",
+                        "Narrow Body",
+                        170,
+                        18,
+                        8
+                );
 
-                    service.registerPassenger(
+        Route route1 =
+                new Route(
+                        "Hyderabad",
+                        "Delhi"
+                );
 
-                            "Krrish CH",
+        Route route2 =
+                new Route(
+                        "Chennai",
+                        "Mumbai"
+                );
 
-                            "krrish@gmail.com",
+        Route route3 =
+                new Route(
+                        "Bangalore",
+                        "Kolkata"
+                );
 
-                            "9876543210",
+        flightService.addFlight(
+                "AI101",
+                "Air India",
+                aircraft1,
+                route1,
+                LocalDateTime.of(2026,8,10,8,0),
+                LocalDateTime.of(2026,8,10,10,30),
+                4500,
+                8500,
+                14500
+        );
 
-                            "password123"
+        flightService.addFlight(
+                "6E205",
+                "IndiGo",
+                aircraft2,
+                route2,
+                LocalDateTime.of(2026,8,11,13,45),
+                LocalDateTime.of(2026,8,11,15,55),
+                3900,
+                7200,
+                12000
+        );
 
-                    );
+        flightService.addFlight(
+                "UK777",
+                "Vistara",
+                aircraft1,
+                route3,
+                LocalDateTime.of(2026,8,12,6,15),
+                LocalDateTime.of(2026,8,12,9,20),
+                5200,
+                9800,
+                16500
+        );
 
-            User passenger2 =
+        System.out.println();
+        System.out.println("Flights Added Successfully");
 
-                    service.registerPassenger(
+        flightService.displayFlights();
 
-                            "Rahul Sharma",
+        System.out.println();
+        System.out.println("Searching Flight AI101");
 
-                            "rahul@gmail.com",
+        System.out.println(
+                flightService.searchFlight("AI101")
+        );
 
-                            "9988776655",
+        System.out.println();
 
-                            "rahul123"
+        System.out.println(
+                "Updating Flight Status..."
+        );
 
-                    );
+        flightService.updateFlightStatus(
+                "AI101",
+                FlightStatus.DELAYED
+        );
 
-            User passenger3 =
+        System.out.println(
+                flightService.searchFlight("AI101")
+        );
 
-                    service.registerPassenger(
+        System.out.println();
 
-                            "Priya Reddy",
+        System.out.println(
+                "Updating Economy Fare..."
+        );
 
-                            "priya@gmail.com",
+        flightService.updateEconomyFare(
+                "AI101",
+                5000
+        );
 
-                            "9123456789",
+        System.out.println(
+                flightService.searchFlight("AI101")
+        );
 
-                            "priya123"
+        System.out.println();
 
-                    );
+        System.out.println(
+                "Deleting Flight UK777..."
+        );
 
-            System.out.println();
+        flightService.deleteFlight("UK777");
 
-            System.out.println("Passenger Registered Successfully");
-
-            System.out.println("--------------------------------");
-
-            System.out.println(passenger1);
-
-            System.out.println(passenger2);
-
-            System.out.println(passenger3);
-
-            service.displayUsers();
-
-        }
-
-        catch (DuplicateUserException |
-
-               InvalidUserException exception) {
-
-            System.out.println();
-
-            System.out.println(exception.getMessage());
-
-        }
+        flightService.displayFlights();
 
     }
 
