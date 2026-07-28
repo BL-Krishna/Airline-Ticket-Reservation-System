@@ -19,6 +19,8 @@ import airline.model.Airport;
 import airline.service.AirportService;
 import airline.enums.BookingPriority;
 import airline.service.BookingQueueService;
+import airline.model.Seat;
+import airline.service.SeatService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -389,5 +391,32 @@ public class AirlineReservationApplication {
         // Process queue in priority order
         queueService.processQueue();
         System.out.println("=========================================================");
+
+        // ===========================
+        // UC14 - BOOKING MODIFICATION TEST
+        // ===========================
+        System.out.println("\n========== UC14 - BOOKING MODIFICATION DEMO ==========");
+        System.out.println("Original Booking1 details:\n" + booking1);
+
+        // 1. Modify Flight
+        Flight alternativeFlight = flightService.searchFlight("6E205");
+        System.out.println("\n--- 1. Modifying Flight to '6E205' ---");
+        bookingService.modifyFlight(booking1.getBookingId(), alternativeFlight);
+        System.out.println("Booking1 details after flight modification:\n" + booking1);
+
+        // 2. Modify Passenger Details (Preferences/Details)
+        System.out.println("\n--- 2. Modifying Passenger Preferences (Meal: Veg, Assistance: Wheelchair) ---");
+        bookingService.modifyPassengerDetails(booking1.getBookingId(), "Krrish CH corrected", "krrish.corrected@gmail.com", "9999988888", "Veg Meal", "Wheelchair");
+        System.out.println("Booking1 details after passenger update:\n" + booking1);
+        System.out.println("Passenger Preferred Meal: " + booking1.getPassenger().getMealPreference());
+        System.out.println("Passenger Special Assistance: " + booking1.getPassenger().getSpecialAssistance());
+
+        // 3. Change Seat
+        System.out.println("\n--- 3. Changing Seat to Premium Seat '3A' (Business Class Seat) ---");
+        SeatService applicationSeatService = new SeatService();
+        Seat newSeat = applicationSeatService.searchSeat("3A");
+        bookingService.changeSeat(booking1.getBookingId(), newSeat);
+        System.out.println("Booking1 details after seat modification:\n" + booking1);
+        System.out.println("=======================================================");
     }
 }
