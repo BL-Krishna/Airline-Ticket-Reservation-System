@@ -63,5 +63,44 @@ public class EmailNotification implements NotificationObserver {
         System.out.println("Thank you.");
         System.out.println("==========================================");
     }
+    @Override
+    public void refundNotification(Refund refund) {
+
+        System.out.println("\n==========================================");
+        System.out.println("          EMAIL NOTIFICATION");
+        System.out.println("==========================================");
+
+        System.out.println("To : "
+                + refund.getBooking().getPassenger().getEmail());
+
+        System.out.println("Subject : Refund Processed");
+
+        System.out.println();
+
+        System.out.println("Dear "
+                + refund.getBooking().getPassenger().getName());
+
+        System.out.println();
+
+        System.out.println("Your booking has been cancelled.");
+
+        System.out.println("Refund ID : "
+                + refund.getRefundId());
+
+        System.out.println("Booking ID : "
+                + refund.getBooking().getBookingId());
+
+        System.out.println("Refund Amount : ₹"
+                + refund.getRefundAmount());
+
+        System.out.println("Refund Status : "
+                + refund.getRefundStatus());
+
+        System.out.println();
+
+        System.out.println("Your refund will be credited shortly.");
+
+        System.out.println("==========================================");
+    }
 
 }

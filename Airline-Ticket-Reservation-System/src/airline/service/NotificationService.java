@@ -2,6 +2,7 @@ package airline.notification;
 
 import airline.model.Booking;
 import airline.model.Payment;
+import airline.model.Refund;
 import airline.repository.PaymentRepository;
 
 
@@ -97,5 +98,14 @@ public class NotificationService {
 
         System.out.println("==========================================");
     }
+    /**
+     * Refund Notification
+     */
+    public void notifyRefund(Refund refund) {
 
+        System.out.println("\nSending Refund Notifications...");
+
+        observers.forEach(observer ->
+                observer.refundNotification(refund));
+    }
 }
