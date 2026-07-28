@@ -21,6 +21,7 @@ import airline.enums.BookingPriority;
 import airline.service.BookingQueueService;
 import airline.model.Seat;
 import airline.service.SeatService;
+import airline.service.ReportingService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -418,5 +419,11 @@ public class AirlineReservationApplication {
         bookingService.changeSeat(booking1.getBookingId(), newSeat);
         System.out.println("Booking1 details after seat modification:\n" + booking1);
         System.out.println("=======================================================");
+
+        // ===========================
+        // UC15 - REPORTING & ANALYTICS TEST
+        // ===========================
+        ReportingService reportingService = new ReportingService();
+        reportingService.generateAnalyticsReport();
     }
 }
