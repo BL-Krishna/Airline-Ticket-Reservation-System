@@ -11,10 +11,13 @@ import java.util.Collection;
 
 public class UserService {
 
-    private final UserRepository repository =
-            new UserRepository();
+    private final UserRepository repository;
 
     private static int userCounter = 1001;
+
+    public UserService(UserRepository repository) {
+        this.repository = repository;
+    }
 
     public User registerPassenger(String name,
                                   String email,

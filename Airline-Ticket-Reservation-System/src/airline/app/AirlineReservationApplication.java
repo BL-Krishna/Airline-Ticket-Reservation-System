@@ -3,15 +3,18 @@ package airline.app;
 import airline.exception.DuplicateUserException;
 import airline.exception.InvalidUserException;
 import airline.model.User;
+import airline.repository.UserRepository;
 import airline.service.UserService;
 
 public class AirlineReservationApplication {
 
     public static void main(String[] args) {
 
-        UserService service =
+        UserRepository repository =
+                new UserRepository();
 
-                new UserService();
+        UserService service =
+                new UserService(repository);
 
         try {
 
