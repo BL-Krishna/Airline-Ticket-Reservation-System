@@ -1,22 +1,50 @@
 package airline.app;
 
 import airline.enums.FlightStatus;
+import airline.enums.TravelClass;
 import airline.model.Aircraft;
+import airline.model.Booking;
+import airline.model.Passenger;
 import airline.model.Route;
+import airline.repository.BookingRepository;
 import airline.repository.FlightRepository;
+import airline.service.BookingService;
+import airline.service.FlightSearchService;
 import airline.service.FlightService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class AirlineReservationApplication {
 
     public static void main(String[] args) {
 
+        // ===========================
+        // REPOSITORIES
+        // ===========================
+
         FlightRepository flightRepository =
                 new FlightRepository();
 
+        BookingRepository bookingRepository =
+                new BookingRepository();
+
+        // ===========================
+        // SERVICES
+        // ===========================
+
         FlightService flightService =
                 new FlightService(flightRepository);
+
+        FlightSearchService searchService =
+                new FlightSearchService(flightRepository);
+
+        BookingService bookingService =
+                new BookingService(bookingRepository);
+
+        // ===========================
+        // AIRCRAFTS
+        // ===========================
 
         Aircraft aircraft1 =
                 new Aircraft(
@@ -38,6 +66,10 @@ public class AirlineReservationApplication {
                         8
                 );
 
+        // ===========================
+        // ROUTES
+        // ===========================
+
         Route route1 =
                 new Route(
                         "Hyderabad",
@@ -56,13 +88,17 @@ public class AirlineReservationApplication {
                         "Kolkata"
                 );
 
+        // ===========================
+        // ADD FLIGHTS
+        // ===========================
+
         flightService.addFlight(
                 "AI101",
                 "Air India",
                 aircraft1,
                 route1,
-                LocalDateTime.of(2026,8,10,8,0),
-                LocalDateTime.of(2026,8,10,10,30),
+                LocalDateTime.of(2026, 8, 10, 8, 0),
+                LocalDateTime.of(2026, 8, 10, 10, 30),
                 4500,
                 8500,
                 14500
@@ -73,8 +109,8 @@ public class AirlineReservationApplication {
                 "IndiGo",
                 aircraft2,
                 route2,
-                LocalDateTime.of(2026,8,11,13,45),
-                LocalDateTime.of(2026,8,11,15,55),
+                LocalDateTime.of(2026, 8, 11, 13, 45),
+                LocalDateTime.of(2026, 8, 11, 15, 55),
                 3900,
                 7200,
                 12000
@@ -85,30 +121,164 @@ public class AirlineReservationApplication {
                 "Vistara",
                 aircraft1,
                 route3,
-                LocalDateTime.of(2026,8,12,6,15),
-                LocalDateTime.of(2026,8,12,9,20),
+                LocalDateTime.of(2026, 8, 12, 6, 15),
+                LocalDateTime.of(2026, 8, 12, 9, 20),
                 5200,
                 9800,
                 16500
         );
 
-        System.out.println();
-        System.out.println("Flights Added Successfully");
+        System.out.println("\n========== ALL FLIGHTS ==========");
 
         flightService.displayFlights();
 
-        System.out.println();
-        System.out.println("Searching Flight AI101");
+        // ===========================
+        // UC5 - SEARCH OPERATIONS
+        // ===========================
+
+        System.out.println("\n========== SEARCH BY SOURCE ==========");
+
+        searchService
+                .searchBySource("Hyderabad")
+                .forEach(System.out::println);
+
+        System.out.println("\n========== SEARCH BY DESTINATION ==========");
+
+        searchService
+                .searchByDestination("Mumbai")
+                .forEach(System.out::println);
+
+        System.out.println("\n========== SEARCH BY ROUTE ==========");
+
+        searchService
+                .searchByRoute(
+                        "Hyderabad",
+                        "Delhi")
+                .forEach(System.out::println);
+
+        System.out.println("\n========== SEARCH BY AIRLINE ==========");
+
+        searchService
+                .searchByAirline("Air India")
+                .forEach(System.out::println);
+
+        System.out.println("\n========== SEARCH BY DATE ==========");
+
+        searchService
+                .searchByDate(LocalDate.of(2026,8,10))
+                .forEach(System.out::println);
+
+        System.out.println("\n========== CHEAPEST FLIGHT ==========");
 
         System.out.println(
-                flightService.searchFlight("AI101")
+                searchService.getCheapestFlight()
+        );
+
+        System.out.println("\n========== SORT BY FARE ==========");
+
+        searchService
+                .sortByFare()
+                .forEach(System.out::println);
+
+        System.out.println("\n========== SORT BY DEPARTURE ==========");
+
+        searchService
+                .sortByDepartureTime()
+                .forEach(System.out::println);
+
+        // ===========================
+        // UC6 BOOKING
+        // ===========================
+
+        Passenger passenger =
+                new Passenger(
+                        "P101",
+                        "Krrish CH",
+                        "krrish@gmail.com",
+                        "9876543210",
+                        "Hyderabad"
+                );
+
+        Booking booking =
+                bookingService.bookFlight(
+                        passenger,
+                        flightService.searchFlight("AI101"),
+                        TravelClass.ECONOMY,
+                        2
+                );
+
+        System.out.println("\n========== BOOKING CREATED ==========");
+
+        System.out.println(booking);
+
+        System.out.println("\n========== ALL BOOKINGS ==========");
+
+        bookingService.displayBookings();
+
+        System.out.println("\n========== SEARCH BOOKING ==========");
+
+        System.out.println(
+                bookingService.searchBooking(
+                        booking.getBookingId()
+                )
+        );
+
+        System.out.println("\n========== BOOKING REPORT ==========");
+
+        System.out.println(
+                "Total Bookings : "
+                        + bookingService.totalBookings()
+        );
+
+        System.out.println(
+                "Revenue : "
+                        + bookingService.totalRevenue()
+        );
+
+        bookingService
+                .highestBooking()
+                .ifPresent(b -> {
+
+                    System.out.println("\nHighest Booking");
+
+                    System.out.println(b);
+
+                });
+
+        bookingService
+                .lowestBooking()
+                .ifPresent(b -> {
+
+                    System.out.println("\nLowest Booking");
+
+                    System.out.println(b);
+
+                });
+
+        System.out.println("\n========== CANCEL BOOKING ==========");
+
+        bookingService.cancelBooking(
+                booking.getBookingId()
+        );
+
+        System.out.println(
+                bookingService.searchBooking(
+                        booking.getBookingId()
+                )
         );
 
         System.out.println();
 
         System.out.println(
-                "Updating Flight Status..."
+                "Cancelled Bookings : "
+                        + bookingService.totalCancelledBookings()
         );
+
+        // ===========================
+        // EXISTING UC4 OPERATIONS
+        // ===========================
+
+        System.out.println("\n========== UPDATE STATUS ==========");
 
         flightService.updateFlightStatus(
                 "AI101",
@@ -119,11 +289,7 @@ public class AirlineReservationApplication {
                 flightService.searchFlight("AI101")
         );
 
-        System.out.println();
-
-        System.out.println(
-                "Updating Economy Fare..."
-        );
+        System.out.println("\n========== UPDATE FARE ==========");
 
         flightService.updateEconomyFare(
                 "AI101",
@@ -134,84 +300,10 @@ public class AirlineReservationApplication {
                 flightService.searchFlight("AI101")
         );
 
-        System.out.println();
-
-        System.out.println(
-                "Deleting Flight UK777..."
-        );
+        System.out.println("\n========== DELETE FLIGHT ==========");
 
         flightService.deleteFlight("UK777");
 
         flightService.displayFlights();
-
     }
-    flightService.displayFlights();
-
-System.out.println("\n===============================");
-System.out.println("UC5 FLIGHT SEARCH");
-System.out.println("===============================");
-
-System.out.println("\nSearch By Source");
-
-searchService.searchBySource("Hyderabad")
-        .forEach(System.out::println);
-
-System.out.println("\nSearch By Destination");
-
-searchService.searchByDestination("Mumbai")
-        .forEach(System.out::println);
-
-System.out.println("\nSearch By Route");
-
-searchService.searchByRoute(
-        "Hyderabad",
-        "Delhi")
-        .forEach(System.out::println);
-
-System.out.println("\nSearch By Airline");
-
-searchService.searchByAirline("Air India")
-        .forEach(System.out::println);
-
-System.out.println("\nSearch By Date");
-
-searchService.searchByDate(
-
-        LocalDate.of(2026,8,10)
-
-        ).forEach(System.out::println);
-
-System.out.println("\nCheapest Flight");
-
-System.out.println(
-
-        searchService.getCheapestFlight()
-
-        );
-
-System.out.println("\nFlights Sorted By Fare");
-
-searchService.sortByFare()
-
-        .forEach(System.out::println);
-
-System.out.println("\nFlights Sorted By Departure");
-
-searchService.sortByDepartureTime()
-
-        .forEach(System.out::println);
-
-System.out.println("\nFlights Grouped By Airline");
-
-searchService.groupFlightsByAirline()
-
-        .forEach((airline,list)->{
-
-        System.out.println("\n"+airline);
-
-        list.forEach(System.out::println);
-
-    });
-
-
 }
