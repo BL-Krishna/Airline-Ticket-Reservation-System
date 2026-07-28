@@ -6,6 +6,7 @@ import airline.model.Aircraft;
 import airline.model.Booking;
 import airline.model.Passenger;
 import airline.model.Route;
+import airline.model.Flight;
 import airline.repository.BookingRepository;
 import airline.repository.FlightRepository;
 import airline.service.BookingService;
@@ -16,6 +17,8 @@ import airline.singleton.FlightManager;
 import airline.singleton.PaymentManager;
 import airline.model.Airport;
 import airline.service.AirportService;
+import airline.enums.BookingPriority;
+import airline.service.BookingQueueService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -359,5 +362,32 @@ public class AirlineReservationApplication {
         flightService.deleteFlight("UK777");
 
         flightService.displayFlights();
+
+        // ===========================
+        // UC13 - PRIORITY BOOKING PROCESS TEST
+        // ===========================
+        System.out.println("\n========== UC13 - PRIORITY BOOKING QUEUE DEMO ==========");
+        BookingQueueService queueService = BookingManager.getInstance().getBookingQueueService();
+        Passenger testPassenger = new Passenger("P999", "Queue Tester", "tester@gmail.com", "9000000009", "Hyderabad");
+        Flight demoFlight = flightService.searchFlight("AI101");
+        
+        // Create booking requests
+        Booking booking1 = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.ECONOMY, 1);
+        Booking booking2 = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.BUSINESS, 2);
+        Booking booking3 = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.FIRST_CLASS, 1);
+        Booking booking4 = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.ECONOMY, 3);
+
+        // Queue requests with different priorities
+        queueService.addRequest(booking1, BookingPriority.REGULAR);
+        queueService.addRequest(booking2, BookingPriority.EXPRESS); // Express (prioritized)
+        queueService.addRequest(booking3, BookingPriority.EXPRESS); // Express (FIFO after booking2)
+        queueService.addRequest(booking4, BookingPriority.REGULAR);
+
+        // Display current queue sorting
+        queueService.displayQueue();
+
+        // Process queue in priority order
+        queueService.processQueue();
+        System.out.println("=========================================================");
     }
 }

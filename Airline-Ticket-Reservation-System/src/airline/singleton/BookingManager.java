@@ -6,6 +6,8 @@ import airline.model.Booking;
 import airline.model.Flight;
 import airline.model.Passenger;
 import airline.repository.BookingRepository;
+import airline.service.BookingQueueService;
+import airline.enums.BookingPriority;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Map;
@@ -16,10 +18,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BookingManager {
     private static volatile BookingManager instance;
     private final BookingRepository bookingRepository;
+    private final BookingQueueService bookingQueueService;
     private final Map<String, Booking> bookingCache = new ConcurrentHashMap<>();
 
     private BookingManager() {
         this.bookingRepository = new BookingRepository();
+        this.bookingQueueService = new BookingQueueService();
+    }
+
+    public BookingQueueService getBookingQueueService() {
+        return bookingQueueService;
     }
 
     public static BookingManager getInstance() {
