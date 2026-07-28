@@ -1,5 +1,5 @@
 package airline.service;
-
+import airline.notification.NotificationService;
 import airline.model.Booking;
 import airline.model.Payment;
 import airline.model.PaymentMethod;
@@ -15,11 +15,16 @@ import java.util.UUID;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final NotificationService notificationService;
 
-    public PaymentService(PaymentRepository paymentRepository) {
+
+    public PaymentService(PaymentRepository paymentRepository,
+                          NotificationService notificationService) {
+
         this.paymentRepository = paymentRepository;
-    }
+        this.notificationService = notificationService;
 
+    }
     public Payment processPayment(Booking booking,
                                   PaymentMethod paymentMethod,
                                   PaymentStrategy paymentStrategy) {
@@ -36,21 +41,30 @@ public class PaymentService {
                         ? PaymentStatus.SUCCESS
                         : PaymentStatus.FAILED;
 
-        Payment payment = new Payment(
-                generatePaymentId(),
-                booking,
-                paymentMethod,
-                booking.getTotalFare(),
-                generateTransactionId(),
-                LocalDateTime.now(),
-                paymentStatus
-        );
+        Payment payment =
+                new Payment(
+                        generatePaymentId(),
+                        booking,
+                        paymentMethod,
+                        booking.getTotalFare(),
+                        generateTransactionId(),
+                        LocalDateTime.now(),
+                        paymentStatus
+                );
 
         paymentRepository.save(payment);
 
-        return payment;
-    }
+        if (paymentStatus == PaymentStatus.SUCCESS) {
 
+            notificationService.notifyBooking(booking);
+
+            notificationService.notifyPayment(payment);
+
+        }
+
+        return payment;
+
+    }
     private String generatePaymentId() {
 
         return "PAY-" +
