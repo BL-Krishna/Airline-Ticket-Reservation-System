@@ -45,5 +45,23 @@ public class SMSNotification implements NotificationObserver {
 
         System.out.println("***********************************");
     }
+    @Override
+    public void refundNotification(Refund refund) {
+
+        System.out.println("\n************** SMS ****************");
+
+        System.out.println("To : "
+                + refund.getBooking().getPassenger().getPhoneNumber());
+
+        System.out.println("Booking Cancelled.");
+
+        System.out.println("Refund : ₹"
+                + refund.getRefundAmount());
+
+        System.out.println("Refund ID : "
+                + refund.getRefundId());
+
+        System.out.println("***********************************");
+    }
 
 }
