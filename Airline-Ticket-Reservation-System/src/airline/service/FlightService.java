@@ -6,12 +6,17 @@ import airline.model.Aircraft;
 import airline.model.Flight;
 import airline.model.Route;
 import airline.repository.FlightRepository;
+import airline.singleton.FlightManager;
 
 import java.time.LocalDateTime;
 
 public class FlightService {
 
     private final FlightRepository repository;
+
+    public FlightService() {
+        this.repository = FlightManager.getInstance().getFlightRepository();
+    }
 
     public FlightService(FlightRepository repository) {
 

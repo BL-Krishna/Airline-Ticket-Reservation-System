@@ -11,6 +11,9 @@ import airline.repository.FlightRepository;
 import airline.service.BookingService;
 import airline.service.FlightSearchService;
 import airline.service.FlightService;
+import airline.singleton.BookingManager;
+import airline.singleton.FlightManager;
+import airline.singleton.PaymentManager;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,14 +23,31 @@ public class AirlineReservationApplication {
     public static void main(String[] args) {
 
         // ===========================
-        // REPOSITORIES
+        // UC11 - SINGLETON MANAGERS VERIFICATION
+        // ===========================
+        System.out.println("\n========== UC11 - SINGLETON MANAGERS VERIFICATION ==========");
+        FlightManager flightManager1 = FlightManager.getInstance();
+        FlightManager flightManager2 = FlightManager.getInstance();
+        System.out.println("FlightManager Singleton check: " + (flightManager1 == flightManager2));
+
+        BookingManager bookingManager1 = BookingManager.getInstance();
+        BookingManager bookingManager2 = BookingManager.getInstance();
+        System.out.println("BookingManager Singleton check: " + (bookingManager1 == bookingManager2));
+
+        PaymentManager paymentManager1 = PaymentManager.getInstance();
+        PaymentManager paymentManager2 = PaymentManager.getInstance();
+        System.out.println("PaymentManager Singleton check: " + (paymentManager1 == paymentManager2));
+        System.out.println("=============================================================");
+
+        // ===========================
+        // REPOSITORIES (Using Singletons)
         // ===========================
 
         FlightRepository flightRepository =
-                new FlightRepository();
+                FlightManager.getInstance().getFlightRepository();
 
         BookingRepository bookingRepository =
-                new BookingRepository();
+                BookingManager.getInstance().getBookingRepository();
 
         // ===========================
         // SERVICES

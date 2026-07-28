@@ -49,6 +49,24 @@ public class Booking {
         this.bookingStatus = bookingStatus;
     }
 
+    public Booking(String bookingId,
+                   Passenger passenger,
+                   Flight flight,
+                   TravelClass travelClass,
+                   int numberOfSeats,
+                   double totalFare,
+                   LocalDateTime bookingTime,
+                   BookingStatus bookingStatus) {
+        this.bookingId = bookingId;
+        this.passenger = passenger;
+        this.flight = flight;
+        this.travelClass = travelClass;
+        this.numberOfSeats = numberOfSeats;
+        this.totalFare = totalFare;
+        this.bookingTime = bookingTime;
+        this.bookingStatus = bookingStatus;
+    }
+
     public String getBookingId() {
         return bookingId;
     }
@@ -134,7 +152,7 @@ public class Booking {
                 + " -> "
                 + flight.getRoute().getDestination() +
                 "\nTravel Class    : " + travelClass +
-                "\nSeat Number     : " + seat.getSeatNumber() +
+                "\nSeat Number     : " + (seat != null ? seat.getSeatNumber() : "Not Assigned") +
                 "\nSeats Booked    : " + numberOfSeats +
                 "\nTotal Fare      : " + totalFare +
                 "\nBooking Time    : " + bookingTime +

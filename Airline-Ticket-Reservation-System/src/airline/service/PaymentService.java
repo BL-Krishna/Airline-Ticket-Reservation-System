@@ -1,5 +1,4 @@
 package airline.service;
-import airline.notification.NotificationService;
 import airline.model.Booking;
 import airline.model.Payment;
 import airline.model.PaymentMethod;
@@ -12,11 +11,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import airline.singleton.PaymentManager;
+
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final NotificationService notificationService;
 
+    public PaymentService() {
+        this.paymentRepository = PaymentManager.getInstance().getPaymentRepository();
+        this.notificationService = new NotificationService();
+    }
 
     public PaymentService(PaymentRepository paymentRepository,
                           NotificationService notificationService) {

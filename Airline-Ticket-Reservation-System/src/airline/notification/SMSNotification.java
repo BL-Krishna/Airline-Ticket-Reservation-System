@@ -2,6 +2,7 @@ package airline.notification;
 
 import airline.model.Booking;
 import airline.model.Payment;
+import airline.model.Refund;
 
 public class SMSNotification implements NotificationObserver {
 
