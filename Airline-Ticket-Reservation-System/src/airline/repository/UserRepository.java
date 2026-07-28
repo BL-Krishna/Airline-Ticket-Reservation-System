@@ -1,5 +1,6 @@
 package airline.repository;
 
+import airline.enums.UserRole;
 import airline.model.User;
 
 import java.util.Collection;
@@ -62,6 +63,23 @@ public class UserRepository {
     public int count() {
 
         return users.size();
+
+    }
+    public long countAdmins() {
+
+        return users.values()
+                .stream()
+                .filter(user -> user.getRole() == UserRole.ADMIN)
+                .count();
+
+    }
+
+    public Collection<User> findByRole(UserRole role) {
+
+        return users.values()
+                .stream()
+                .filter(user -> user.getRole() == role)
+                .toList();
 
     }
 
