@@ -8,6 +8,8 @@ import airline.model.Passenger;
 import airline.model.Seat;
 import airline.repository.BookingRepository;
 import airline.singleton.BookingManager;
+import airline.exception.DuplicateBookingException;
+import airline.exception.SeatLimitException;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -34,8 +36,7 @@ public class BookingService {
 
         // 1. Max Seat Limit check
         if (seats <= 0 || seats > 6) {
-            System.out.println("Booking Error: Cannot book " + seats + " seats. Limit is between 1 and 6 seats per transaction.");
-            return null;
+            throw new SeatLimitException("Cannot book " + seats + " seats. Limit is between 1 and 6 seats per transaction.");
         }
 
         // 2. Duplicate Booking check
@@ -46,8 +47,7 @@ public class BookingService {
                             && flight.getFlightNumber().equalsIgnoreCase(b.getFlight().getFlightNumber())
                             && (b.getBookingStatus() == BookingStatus.BOOKED || b.getBookingStatus() == BookingStatus.CHECKED_IN));
             if (duplicateExists) {
-                System.out.println("Booking Error: Passenger " + passenger.getFullName() + " already has an active booking for flight " + flight.getFlightNumber() + ".");
-                return null;
+                throw new DuplicateBookingException("Passenger " + passenger.getFullName() + " already has an active booking for flight " + flight.getFlightNumber() + ".");
             }
         }
 

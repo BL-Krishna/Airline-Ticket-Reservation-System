@@ -450,7 +450,11 @@ public class AirlineReservationApplication {
         Booking intBooking = bookingService.bookFlight(intPassenger, intFlight, TravelClass.BUSINESS, 1);
 
         System.out.println("\n--- 1. Check-In with Passport Missing (International Flight) ---");
-        BoardingPass bpFail = checkInService.performOnlineCheckIn(intBooking.getBookingId(), "12B", 1, true);
+        try {
+            BoardingPass bpFail = checkInService.performOnlineCheckIn(intBooking.getBookingId(), "12B", 1, true);
+        } catch (airline.exception.CheckInException e) {
+            System.out.println("Caught Expected Exception: " + e.getMessage());
+        }
 
         System.out.println("\n--- 2. Add Passport and Retry Check-In ---");
         intPassenger.setPassportNumber("L87654321");
@@ -462,7 +466,11 @@ public class AirlineReservationApplication {
         System.out.println("\n--- 3. Check-In with Excess Baggage (4 bags, max 3) ---");
         Passenger baggagePassenger = new Passenger("P999_B", "Baggage Tester", "baggage@gmail.com", "9000000009", "Hyderabad");
         Booking bookingForBaggageTest = bookingService.bookFlight(baggagePassenger, demoFlight, TravelClass.ECONOMY, 1);
-        BoardingPass bpBaggageFail = checkInService.performOnlineCheckIn(bookingForBaggageTest.getBookingId(), "18A", 4, true);
+        try {
+            BoardingPass bpBaggageFail = checkInService.performOnlineCheckIn(bookingForBaggageTest.getBookingId(), "18A", 4, true);
+        } catch (airline.exception.CheckInException e) {
+            System.out.println("Caught Expected Exception: " + e.getMessage());
+        }
 
         System.out.println("\n--- 4. Retry Check-In with Allowed Baggage (2 bags) ---");
         BoardingPass bpBaggageSuccess = checkInService.performOnlineCheckIn(bookingForBaggageTest.getBookingId(), "18A", 2, true);
@@ -585,14 +593,66 @@ public class AirlineReservationApplication {
 
         // 6. Test Max Seat Limit failure (Attempt to book 7 seats)
         System.out.println("\n--- 6. Testing Max Seat Limit Failure (Attempting to book 7 seats) ---");
-        Booking failedSeatBooking = bookingService.bookFlight(regularPassenger, farFlight, TravelClass.ECONOMY, 7);
-        System.out.println("Booking reference returned: " + failedSeatBooking);
+        try {
+            Booking failedSeatBooking = bookingService.bookFlight(regularPassenger, farFlight, TravelClass.ECONOMY, 7);
+            System.out.println("Booking reference returned: " + failedSeatBooking);
+        } catch (airline.exception.SeatLimitException e) {
+            System.out.println("Caught Expected Exception: " + e.getMessage());
+        }
 
         // 7. Test Duplicate Booking failure
         System.out.println("\n--- 7. Testing Duplicate Booking Failure ---");
         System.out.println("Attempting to book the same flight (6E205) again for seniorPassenger...");
-        Booking failedDuplicateBooking = bookingService.bookFlight(seniorPassenger, flightService.searchFlight("6E205"), TravelClass.ECONOMY, 1);
-        System.out.println("Booking reference returned: " + failedDuplicateBooking);
+        try {
+            Booking failedDuplicateBooking = bookingService.bookFlight(seniorPassenger, flightService.searchFlight("6E205"), TravelClass.ECONOMY, 1);
+            System.out.println("Booking reference returned: " + failedDuplicateBooking);
+        } catch (airline.exception.DuplicateBookingException e) {
+            System.out.println("Caught Expected Exception: " + e.getMessage());
+        }
         System.out.println("=================================================");
+
+        // ===========================
+        // UC19 - EXCEPTION HANDLING DEMO
+        // ===========================
+        System.out.println("\n========== UC19 - EXCEPTION HANDLING DEMO ==========");
+
+        // 1. Trigger FlightNotFoundException
+        System.out.println("\n--- 1. Triggering FlightNotFoundException (Search flight: AI999) ---");
+        try {
+            flightService.searchFlight("AI999");
+        } catch (airline.exception.FlightNotFoundException e) {
+            System.out.println("Caught Expected Exception: " + e.getMessage());
+        }
+
+        // 2. Trigger SeatLimitException
+        System.out.println("\n--- 2. Triggering SeatLimitException (Attempting to book 10 seats) ---");
+        try {
+            bookingService.bookFlight(regularPassenger, farFlight, TravelClass.ECONOMY, 10);
+        } catch (airline.exception.SeatLimitException e) {
+            System.out.println("Caught Expected Exception: " + e.getMessage());
+        }
+
+        // 3. Trigger DuplicateBookingException
+        System.out.println("\n--- 3. Triggering DuplicateBookingException ---");
+        try {
+            Passenger dupPassenger = new Passenger("P19_DUP", "Duplicate Tester", "dup@gmail.com", "9999944444", "pass123");
+            bookingService.bookFlight(dupPassenger, farFlight, TravelClass.ECONOMY, 1);
+            System.out.println("First booking successful. Attempting second booking for same flight & passenger...");
+            bookingService.bookFlight(dupPassenger, farFlight, TravelClass.ECONOMY, 1);
+        } catch (airline.exception.DuplicateBookingException e) {
+            System.out.println("Caught Expected Exception: " + e.getMessage());
+        }
+
+        // 4. Trigger CheckInException (Check-in for cancelled booking)
+        System.out.println("\n--- 4. Triggering CheckInException (Check-in on cancelled booking) ---");
+        try {
+            Passenger cancelPassenger = new Passenger("P19_CANCEL", "Cancelled Tester", "cancel@gmail.com", "9999955555", "pass123");
+            Booking cancelBooking = bookingService.bookFlight(cancelPassenger, farFlight, TravelClass.ECONOMY, 1);
+            bookingService.cancelBooking(cancelBooking.getBookingId());
+            checkInService.performOnlineCheckIn(cancelBooking.getBookingId(), "12A", 1, true);
+        } catch (airline.exception.CheckInException e) {
+            System.out.println("Caught Expected Exception: " + e.getMessage());
+        }
+        System.out.println("====================================================");
     }
 }
