@@ -22,6 +22,8 @@ import airline.service.BookingQueueService;
 import airline.model.Seat;
 import airline.service.SeatService;
 import airline.service.ReportingService;
+import airline.model.BoardingPass;
+import airline.service.CheckInService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -425,5 +427,43 @@ public class AirlineReservationApplication {
         // ===========================
         ReportingService reportingService = new ReportingService();
         reportingService.generateAnalyticsReport();
+
+        // ===========================
+        // UC16 - ONLINE CHECK-IN TEST
+        // ===========================
+        System.out.println("\n========== UC16 - ONLINE CHECK-IN DEMO ==========");
+        CheckInService checkInService = new CheckInService();
+
+        // Let's create an international booking to test passport validation.
+        Airport lhr = airportService.addAirport("LHR", "Heathrow Airport", "London", "United Kingdom", "GMT+0", "+44 20 8745 7899");
+        Airport hydAirport = airportService.searchByCode("HYD");
+        Route internationalRoute = new Route(hydAirport, lhr);
+        Aircraft intAircraft = new Aircraft("A888", "Boeing 777", "Wide", 200, 20, 10);
+        Flight intFlight = flightService.addFlight("SQ408", "Singapore Air", intAircraft, internationalRoute, 
+            LocalDateTime.now().plusDays(2), LocalDateTime.now().plusDays(2).plusHours(12), 15000, 30000, 50000);
+        
+        Passenger intPassenger = new Passenger("P888", "Int Traveler", "int@travel.com", "9998887776", "London");
+        Booking intBooking = bookingService.bookFlight(intPassenger, intFlight, TravelClass.BUSINESS, 1);
+
+        System.out.println("\n--- 1. Check-In with Passport Missing (International Flight) ---");
+        BoardingPass bpFail = checkInService.performOnlineCheckIn(intBooking.getBookingId(), "12B", 1, true);
+
+        System.out.println("\n--- 2. Add Passport and Retry Check-In ---");
+        intPassenger.setPassportNumber("L87654321");
+        BoardingPass bpSuccess = checkInService.performOnlineCheckIn(intBooking.getBookingId(), "12B", 1, true);
+        if (bpSuccess != null) {
+            System.out.println("Generated Boarding Pass details:\n" + bpSuccess);
+        }
+
+        System.out.println("\n--- 3. Check-In with Excess Baggage (4 bags, max 3) ---");
+        Booking bookingForBaggageTest = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.ECONOMY, 1);
+        BoardingPass bpBaggageFail = checkInService.performOnlineCheckIn(bookingForBaggageTest.getBookingId(), "18A", 4, true);
+
+        System.out.println("\n--- 4. Retry Check-In with Allowed Baggage (2 bags) ---");
+        BoardingPass bpBaggageSuccess = checkInService.performOnlineCheckIn(bookingForBaggageTest.getBookingId(), "18A", 2, true);
+        if (bpBaggageSuccess != null) {
+            System.out.println("Generated Boarding Pass details:\n" + bpBaggageSuccess);
+        }
+        System.out.println("=================================================");
     }
 }
