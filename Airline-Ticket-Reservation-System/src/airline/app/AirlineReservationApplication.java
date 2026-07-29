@@ -25,6 +25,7 @@ import airline.service.ReportingService;
 import airline.model.BoardingPass;
 import airline.service.CheckInService;
 import airline.dto.FlightSearchRequest;
+import airline.persistence.FilePersistenceService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -654,5 +655,62 @@ public class AirlineReservationApplication {
             System.out.println("Caught Expected Exception: " + e.getMessage());
         }
         System.out.println("====================================================");
+
+        // ===========================
+        // UC20 - FILE HANDLING DEMO
+        // ===========================
+        System.out.println("\n========== UC20 - FILE HANDLING DEMO ==========");
+
+        FilePersistenceService persistenceService = new FilePersistenceService();
+        String flightsFile = "flights_db.csv";
+        String bookingsFile = "bookings_db.csv";
+
+        try {
+            // 1. Save data to files
+            System.out.println("Saving flights and bookings to files...");
+            persistenceService.saveFlights(flightsFile);
+            persistenceService.saveBookings(bookingsFile);
+            System.out.println("Flights successfully saved to: " + flightsFile);
+            System.out.println("Bookings successfully saved to: " + bookingsFile);
+
+            // Print original counts
+            int originalFlightsCount = flightRepository.count();
+            int originalBookingsCount = bookingRepository.count();
+            System.out.println("\nOriginal Database Status:");
+            System.out.println("Total Flights in Memory  : " + originalFlightsCount);
+            System.out.println("Total Bookings in Memory : " + originalBookingsCount);
+
+            // 2. Clear current in-memory repositories
+            System.out.println("\nClearing in-memory database to simulate restart...");
+            for (String flightNum : new java.util.ArrayList<>(flightRepository.findAll().stream().map(Flight::getFlightNumber).collect(java.util.stream.Collectors.toList()))) {
+                flightRepository.delete(flightNum);
+            }
+            for (String bookingId : new java.util.ArrayList<>(bookingRepository.findAll().stream().map(Booking::getBookingId).collect(java.util.stream.Collectors.toList()))) {
+                bookingRepository.delete(bookingId);
+            }
+
+            System.out.println("Cleared Database Status:");
+            System.out.println("Total Flights in Memory  : " + flightRepository.count());
+            System.out.println("Total Bookings in Memory : " + bookingRepository.count());
+
+            // 3. Restore data from files
+            System.out.println("\nRestoring database from CSV files...");
+            persistenceService.loadFlights(flightsFile);
+            persistenceService.loadBookings(bookingsFile);
+
+            System.out.println("Restored Database Status:");
+            System.out.println("Total Flights in Memory  : " + flightRepository.count());
+            System.out.println("Total Bookings in Memory : " + bookingRepository.count());
+
+            // Clean up files
+            new java.io.File(flightsFile).delete();
+            new java.io.File(bookingsFile).delete();
+            System.out.println("\nTemporary backup files cleaned up.");
+
+        } catch (Exception e) {
+            System.out.println("Error during File Handling persistence test: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.out.println("===============================================");
     }
 }
