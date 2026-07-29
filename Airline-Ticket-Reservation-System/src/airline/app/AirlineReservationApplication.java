@@ -375,13 +375,16 @@ public class AirlineReservationApplication {
         System.out.println("\n========== UC13 - PRIORITY BOOKING QUEUE DEMO ==========");
         BookingQueueService queueService = BookingManager.getInstance().getBookingQueueService();
         Passenger testPassenger = new Passenger("P999", "Queue Tester", "tester@gmail.com", "9000000009", "Hyderabad");
+        Passenger testPassenger2 = new Passenger("P999_2", "Queue Tester 2", "tester2@gmail.com", "9000000009", "Hyderabad");
+        Passenger testPassenger3 = new Passenger("P999_3", "Queue Tester 3", "tester3@gmail.com", "9000000009", "Hyderabad");
+        Passenger testPassenger4 = new Passenger("P999_4", "Queue Tester 4", "tester4@gmail.com", "9000000009", "Hyderabad");
         Flight demoFlight = flightService.searchFlight("AI101");
         
         // Create booking requests
         Booking booking1 = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.ECONOMY, 1);
-        Booking booking2 = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.BUSINESS, 2);
-        Booking booking3 = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.FIRST_CLASS, 1);
-        Booking booking4 = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.ECONOMY, 3);
+        Booking booking2 = bookingService.bookFlight(testPassenger2, demoFlight, TravelClass.BUSINESS, 2);
+        Booking booking3 = bookingService.bookFlight(testPassenger3, demoFlight, TravelClass.FIRST_CLASS, 1);
+        Booking booking4 = bookingService.bookFlight(testPassenger4, demoFlight, TravelClass.ECONOMY, 3);
 
         // Queue requests with different priorities
         queueService.addRequest(booking1, BookingPriority.REGULAR);
@@ -457,7 +460,8 @@ public class AirlineReservationApplication {
         }
 
         System.out.println("\n--- 3. Check-In with Excess Baggage (4 bags, max 3) ---");
-        Booking bookingForBaggageTest = bookingService.bookFlight(testPassenger, demoFlight, TravelClass.ECONOMY, 1);
+        Passenger baggagePassenger = new Passenger("P999_B", "Baggage Tester", "baggage@gmail.com", "9000000009", "Hyderabad");
+        Booking bookingForBaggageTest = bookingService.bookFlight(baggagePassenger, demoFlight, TravelClass.ECONOMY, 1);
         BoardingPass bpBaggageFail = checkInService.performOnlineCheckIn(bookingForBaggageTest.getBookingId(), "18A", 4, true);
 
         System.out.println("\n--- 4. Retry Check-In with Allowed Baggage (2 bags) ---");
@@ -507,5 +511,88 @@ public class AirlineReservationApplication {
         java.util.List<Flight> results4 = searchService.smartSearch(request4);
         System.out.println("Found " + results4.size() + " flights.");
         System.out.println("=============================================");
+
+        // ===========================
+        // UC18 - BUSINESS RULES DEMO
+        // ===========================
+        System.out.println("\n========== UC18 - BUSINESS RULES DEMO ==========");
+
+        // Add demo flights for proximity tests
+        Flight nearFlight = flightService.addFlight(
+                "6E101",
+                "IndiGo",
+                aircraft2,
+                route2,
+                LocalDateTime.now().plusDays(2),
+                LocalDateTime.now().plusDays(2).plusHours(2),
+                5000,
+                10000,
+                15000
+        );
+
+        Flight farFlight = flightService.addFlight(
+                "6E303",
+                "IndiGo",
+                aircraft2,
+                route2,
+                LocalDateTime.now().plusDays(40),
+                LocalDateTime.now().plusDays(40).plusHours(2),
+                5000,
+                10000,
+                15000
+        );
+
+        // 1. Test Child Discount (Age: 8, child discount 15%)
+        System.out.println("\n--- 1. Testing Child Discount (Age: 8, Expected: 15% discount) ---");
+        Passenger childPassenger = new Passenger("P18_1", "Child Passenger", "child@gmail.com", "9999911111", "pass123");
+        childPassenger.setAge(8);
+        Booking childBooking = bookingService.bookFlight(childPassenger, flightService.searchFlight("6E205"), TravelClass.ECONOMY, 1);
+        if (childBooking != null) {
+            System.out.println("Child Booking Total Fare: ₹" + childBooking.getTotalFare() + " (Base: ₹3900.0)");
+        }
+
+        // 2. Test Senior Discount (Age: 65, senior discount 10%)
+        System.out.println("\n--- 2. Testing Senior Discount (Age: 65, Expected: 10% discount) ---");
+        Passenger seniorPassenger = new Passenger("P18_2", "Senior Passenger", "senior@gmail.com", "9999922222", "pass123");
+        seniorPassenger.setAge(65);
+        Booking seniorBooking = bookingService.bookFlight(seniorPassenger, flightService.searchFlight("6E205"), TravelClass.ECONOMY, 1);
+        if (seniorBooking != null) {
+            System.out.println("Senior Booking Total Fare: ₹" + seniorBooking.getTotalFare() + " (Base: ₹3900.0)");
+        }
+
+        // 3. Test Proximity Surcharge (Booking within 2 days, Expected: 20% surcharge)
+        System.out.println("\n--- 3. Testing Proximity Surcharge (Departing in 2 days, Expected: 20% surcharge) ---");
+        Passenger regularPassenger = new Passenger("P18_3", "Regular Passenger", "regular@gmail.com", "9999933333", "pass123");
+        regularPassenger.setAge(30); // No age discount
+        Booking surchargeBooking = bookingService.bookFlight(regularPassenger, nearFlight, TravelClass.ECONOMY, 1);
+        if (surchargeBooking != null) {
+            System.out.println("Proximity Surcharge Booking Total Fare: ₹" + surchargeBooking.getTotalFare() + " (Base: ₹5000.0)");
+        }
+
+        // 4. Test Proximity Discount (Booking departing in 40 days, Expected: 10% discount)
+        System.out.println("\n--- 4. Testing Proximity Discount (Departing in 40 days, Expected: 10% discount) ---");
+        Booking discountBooking = bookingService.bookFlight(regularPassenger, farFlight, TravelClass.ECONOMY, 1);
+        if (discountBooking != null) {
+            System.out.println("Proximity Discount Booking Total Fare: ₹" + discountBooking.getTotalFare() + " (Base: ₹5000.0)");
+        }
+
+        // 5. Test Combined Child + Proximity Discount (Age: 8, 40 days advance, Expected: 15% then 10% discount)
+        System.out.println("\n--- 5. Testing Combined Discount (Child + Proximity, Expected: ₹3825.0) ---");
+        Booking combinedBooking = bookingService.bookFlight(childPassenger, farFlight, TravelClass.ECONOMY, 1);
+        if (combinedBooking != null) {
+            System.out.println("Combined Booking Total Fare: ₹" + combinedBooking.getTotalFare() + " (Base: ₹5000.0)");
+        }
+
+        // 6. Test Max Seat Limit failure (Attempt to book 7 seats)
+        System.out.println("\n--- 6. Testing Max Seat Limit Failure (Attempting to book 7 seats) ---");
+        Booking failedSeatBooking = bookingService.bookFlight(regularPassenger, farFlight, TravelClass.ECONOMY, 7);
+        System.out.println("Booking reference returned: " + failedSeatBooking);
+
+        // 7. Test Duplicate Booking failure
+        System.out.println("\n--- 7. Testing Duplicate Booking Failure ---");
+        System.out.println("Attempting to book the same flight (6E205) again for seniorPassenger...");
+        Booking failedDuplicateBooking = bookingService.bookFlight(seniorPassenger, flightService.searchFlight("6E205"), TravelClass.ECONOMY, 1);
+        System.out.println("Booking reference returned: " + failedDuplicateBooking);
+        System.out.println("=================================================");
     }
 }

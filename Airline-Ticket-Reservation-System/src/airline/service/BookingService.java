@@ -32,10 +32,29 @@ public class BookingService {
                               TravelClass travelClass,
                               int seats) {
 
+        // 1. Max Seat Limit check
+        if (seats <= 0 || seats > 6) {
+            System.out.println("Booking Error: Cannot book " + seats + " seats. Limit is between 1 and 6 seats per transaction.");
+            return null;
+        }
+
+        // 2. Duplicate Booking check
+        if (passenger != null && passenger.getEmail() != null && flight != null) {
+            boolean duplicateExists = bookingRepository.findAll().stream()
+                    .anyMatch(b -> b.getPassenger() != null 
+                            && passenger.getEmail().equalsIgnoreCase(b.getPassenger().getEmail())
+                            && flight.getFlightNumber().equalsIgnoreCase(b.getFlight().getFlightNumber())
+                            && (b.getBookingStatus() == BookingStatus.BOOKED || b.getBookingStatus() == BookingStatus.CHECKED_IN));
+            if (duplicateExists) {
+                System.out.println("Booking Error: Passenger " + passenger.getFullName() + " already has an active booking for flight " + flight.getFlightNumber() + ".");
+                return null;
+            }
+        }
+
         String bookingId = generateBookingId();
 
         double totalFare =
-                calculateFare(flight, travelClass, seats);
+                calculateFare(flight, travelClass, seats, passenger);
 
         Booking booking =
                 new Booking(
@@ -66,29 +85,56 @@ public class BookingService {
 
     private double calculateFare(Flight flight,
                                  TravelClass travelClass,
-                                 int seats){
+                                 int seats,
+                                 Passenger passenger){
 
-        double fare = 0;
+        double baseFare = 0;
 
         switch (travelClass){
 
             case ECONOMY:
-                fare = flight.getEconomyFare();
+                baseFare = flight.getEconomyFare();
                 break;
 
             case BUSINESS:
-                fare = flight.getBusinessFare();
+                baseFare = flight.getBusinessFare();
                 break;
 
             case FIRST_CLASS:
-                fare = flight.getFirstClassFare();
+                baseFare = flight.getFirstClassFare();
                 break;
 
             default:
-                fare = flight.getEconomyFare();
+                baseFare = flight.getEconomyFare();
         }
 
-        return fare * seats;
+        double totalFare = baseFare * seats;
+
+        // Apply proximity pricing: surcharge if within 7 days, discount if >= 30 days
+        if (flight != null && flight.getDepartureTime() != null) {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            long daysToDeparture = java.time.Duration.between(now, flight.getDepartureTime()).toDays();
+            if (daysToDeparture >= 0 && daysToDeparture <= 7) {
+                totalFare *= 1.20; // 20% surcharge
+                System.out.println("[Business Rule] Booking within 7 days (" + daysToDeparture + " days remaining). 20% surcharge applied.");
+            } else if (daysToDeparture >= 30) {
+                totalFare *= 0.90; // 10% discount
+                System.out.println("[Business Rule] Booking more than 30 days in advance (" + daysToDeparture + " days remaining). 10% discount applied.");
+            }
+        }
+
+        // Apply age-based discount
+        if (passenger != null && passenger.getAge() > 0) {
+            if (passenger.getAge() < 12) {
+                totalFare *= 0.85; // 15% discount for child
+                System.out.println("[Business Rule] Child discount (Age: " + passenger.getAge() + "). 15% discount applied.");
+            } else if (passenger.getAge() > 60) {
+                totalFare *= 0.90; // 10% discount for senior
+                System.out.println("[Business Rule] Senior citizen discount (Age: " + passenger.getAge() + "). 10% discount applied.");
+            }
+        }
+
+        return totalFare;
     }
 
     public Booking searchBooking(String bookingId){
