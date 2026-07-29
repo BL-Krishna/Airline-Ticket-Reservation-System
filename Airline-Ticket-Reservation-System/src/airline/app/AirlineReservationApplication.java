@@ -24,6 +24,7 @@ import airline.service.SeatService;
 import airline.service.ReportingService;
 import airline.model.BoardingPass;
 import airline.service.CheckInService;
+import airline.dto.FlightSearchRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -465,5 +466,46 @@ public class AirlineReservationApplication {
             System.out.println("Generated Boarding Pass details:\n" + bpBaggageSuccess);
         }
         System.out.println("=================================================");
+
+        // ===========================
+        // UC17 - SMART SEARCH DEMO
+        // ===========================
+        System.out.println("\n========== UC17 - SMART SEARCH DEMO ==========");
+
+        // 1. Search for Flights from HYD to Delhi with maximum fare 10000
+        System.out.println("\n--- 1. Search from HYD (Code/City) to DEL (Delhi) with Max Fare 10000 ---");
+        FlightSearchRequest request1 = new FlightSearchRequest();
+        request1.setSource("HYD");
+        request1.setDestination("Delhi");
+        request1.setMaximumFare(10000);
+        java.util.List<Flight> results1 = searchService.smartSearch(request1);
+        System.out.println("Found " + results1.size() + " flights:");
+        results1.forEach(System.out::println);
+
+        // 2. Search for IndiGo flights with budget under 4000
+        System.out.println("\n--- 2. Search for IndiGo flights with Max Fare 4000 ---");
+        FlightSearchRequest request2 = new FlightSearchRequest();
+        request2.setAirline("indigo");
+        request2.setMaximumFare(4000);
+        java.util.List<Flight> results2 = searchService.smartSearch(request2);
+        System.out.println("Found " + results2.size() + " flights:");
+        results2.forEach(System.out::println);
+
+        // 3. Search with multiple criteria: Source "Chennai", date "2026-08-11"
+        System.out.println("\n--- 3. Search with Source 'Chennai' (City) and Departure Date 2026-08-11 ---");
+        FlightSearchRequest request3 = new FlightSearchRequest();
+        request3.setSource("Chennai");
+        request3.setDepartureDate(LocalDate.of(2026, 8, 11));
+        java.util.List<Flight> results3 = searchService.smartSearch(request3);
+        System.out.println("Found " + results3.size() + " flights:");
+        results3.forEach(System.out::println);
+
+        // 4. Search with no matches
+        System.out.println("\n--- 4. Search with non-existent source 'XYZ' ---");
+        FlightSearchRequest request4 = new FlightSearchRequest();
+        request4.setSource("XYZ");
+        java.util.List<Flight> results4 = searchService.smartSearch(request4);
+        System.out.println("Found " + results4.size() + " flights.");
+        System.out.println("=============================================");
     }
 }
