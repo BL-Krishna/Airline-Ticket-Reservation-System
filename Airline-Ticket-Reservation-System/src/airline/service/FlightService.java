@@ -83,9 +83,11 @@ public class FlightService {
     }
 
     public Flight searchFlight(String flightNumber) {
-
-        return repository.findByFlightNumber(flightNumber);
-
+        Flight flight = repository.findByFlightNumber(flightNumber);
+        if (flight == null) {
+            throw new airline.exception.FlightNotFoundException("Flight not found with number: " + flightNumber);
+        }
+        return flight;
     }
 
     public void displayFlights() {

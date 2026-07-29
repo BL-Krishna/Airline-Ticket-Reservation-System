@@ -6,6 +6,7 @@ import airline.model.Booking;
 import airline.model.Passenger;
 import airline.repository.BookingRepository;
 import airline.singleton.BookingManager;
+import airline.exception.CheckInException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -23,13 +24,11 @@ public class CheckInService {
     public BoardingPass performOnlineCheckIn(String bookingId, String seatNumber, int baggageCount, boolean bypassWindowCheck) {
         Booking booking = bookingRepository.findBooking(bookingId);
         if (booking == null) {
-            System.out.println("Check-In Error: Booking not found for ID " + bookingId);
-            return null;
+            throw new CheckInException("Booking not found for ID " + bookingId);
         }
 
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            System.out.println("Check-In Error: Booking " + bookingId + " has been cancelled.");
-            return null;
+            throw new CheckInException("Booking " + bookingId + " has been cancelled.");
         }
 
         LocalDateTime departure = booking.getFlight().getDepartureTime();
@@ -39,8 +38,7 @@ public class CheckInService {
         // 1. Check-In Window Check (24 - 3 hours before departure)
         boolean windowValid = hoursRemaining >= 3 && hoursRemaining <= 24;
         if (!windowValid && !bypassWindowCheck) {
-            System.out.println("Check-In Error: Online check-in is only allowed between 24 and 3 hours before departure. Current hours remaining: " + hoursRemaining);
-            return null;
+            throw new CheckInException("Online check-in is only allowed between 24 and 3 hours before departure. Current hours remaining: " + hoursRemaining);
         }
 
         Passenger passenger = booking.getPassenger();
@@ -52,16 +50,14 @@ public class CheckInService {
             if (src != null && dest != null && !src.getCountry().equalsIgnoreCase(dest.getCountry())) {
                 // International flight
                 if (passenger.getPassportNumber() == null || passenger.getPassportNumber().isBlank()) {
-                    System.out.println("Check-In Error: Valid passport number is required for international flights!");
-                    return null;
+                    throw new CheckInException("Valid passport number is required for international flights!");
                 }
             }
         }
 
         // 3. Baggage Allowance Check (Max 3 pieces)
         if (baggageCount > 3) {
-            System.out.println("Check-In Error: Baggage exceeds maximum online check-in allowance of 3 pieces.");
-            return null;
+            throw new CheckInException("Baggage exceeds maximum online check-in allowance of 3 pieces.");
         }
 
         // Assign the seat to the booking
